@@ -1,0 +1,26 @@
+PROCUREMENT POLICY GUIDELINES
+
+1. PRICE VARIATIONS
+- Price variations up to 5% from the original PO are acceptable for standard items
+- Price variations above 5% require manager approval
+- Price variations above 10% require director approval
+
+2. QUANTITY DISCREPANCIES
+- Quantity variations up to 2% are acceptable for bulk orders
+- Over-delivery of up to 5% is acceptable if storage permits
+- Under-delivery requires vendor justification
+
+3. ITEM SUBSTITUTIONS
+- Equivalent items from approved vendors are acceptable
+- Substitutions must maintain same quality standards
+- Brand substitutions require prior approval
+
+4. DELIVERY TERMS
+- Early delivery is acceptable if storage permits
+- Late delivery beyond agreed terms requires penalty assessment
+- Partial deliveries are acceptable for large orders
+
+5. INVOICE REQUIREMENTS
+- All invoices must match PO line items
+- Tax calculations must be accurate
+- Payment terms must match PO terms

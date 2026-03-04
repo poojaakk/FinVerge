@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinVerge - Procurement Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .status-card {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid;
+        }
+        
+        .status-approved {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        
+        .status-review {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        
+        .status-rejected {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .item-detail {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+        
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-approved { background: #28a745; color: white; }
+        .badge-review { background: #ffc107; color: #212529; }
+        .badge-rejected { background: #dc3545; color: white; }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .processing-step {
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #bdc3c7;
+            transition: all 0.3s ease;
+        }
+        
+        .processing-step.active {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        
+        .processing-step.completed {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        
+        .processing-step.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        
+        .step-icon {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+        
+        .step-text {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .hidden { display: none; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .section h3 {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FinVerge</h1>
+            <p>AI-Powered Procurement Document Verification</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- Verification Type Selection -->
+            <div class="section">
+                <h2>Select Verification Type</h2>
+                <div style="display: flex; gap: 20px; justify-content: center; margin-top: 20px;">
+                    <button class="btn" onclick="selectVerificationType('2way')" id="btn2way">
+                        2-Way Matching
+                    </button>
+                    <button class="btn" onclick="selectVerificationType('3way')" id="btn3way">
+                        3-Way Matching
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2-Way Matching Upload -->
+            <div id="section2way" class="section hidden">
+                <h2>2-Way Matching (PO vs Invoice)</h2>
+                <p style="margin-bottom: 20px;">Upload Purchase Order and Invoice for verification</p>
+                
+                <div class="grid">
+                    <div>
+                        <h3 style="margin-bottom: 10px;">Purchase Order</h3>
+                        <div class="upload-area" id="uploadPO">
+                            <div class="upload-icon">PDF</div>
+                            <h4>Drop PO PDF here</h4>
+                            <input type="file" id="fileInputPO" accept=".pdf" style="display: none;">
+                            <button class="btn" onclick="document.getElementById('fileInputPO').click()">
+                                Choose PO File
+                            </button>
+                        </div>
+                        <div id="poStatus" style="margin-top: 10px; text-align: center;"></div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 10px;">🧾 Invoice</h3>
+                        <div class="upload-area" id="uploadInvoice">
+                            <div class="upload-icon">🧾</div>
+                            <h4>Drop Invoice PDF here</h4>
+                            <input type="file" id="fileInputInvoice" accept=".pdf" style="display: none;">
+                            <button class="btn" onclick="document.getElementById('fileInputInvoice').click()">
+                                Choose Invoice File
+                            </button>
+                        </div>
+                        <div id="invoiceStatus" style="margin-top: 10px; text-align: center;"></div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="verify2Way()" id="btnVerify2way" disabled>
+                        Verify Verify Documents
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3-Way Matching Upload -->
+            <div id="section3way" class="section hidden">
+                <h2>Results 3-Way Matching (PO vs Invoice vs GR)</h2>
+                <p style="margin-bottom: 20px;">Upload Purchase Order, Invoice, and Goods Receipt for verification</p>
+                
+                <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div>
+                        <h3 style="margin-bottom: 10px;">PDF Purchase Order</h3>
+                        <div class="upload-area" id="uploadPO3way">
+                            <div class="upload-icon">PDF</div>
+                            <h4>Drop PO PDF</h4>
+                            <input type="file" id="fileInputPO3way" accept=".pdf" style="display: none;">
+                            <button class="btn" onclick="document.getElementById('fileInputPO3way').click()">
+                                Choose PO
+                            </button>
+                        </div>
+                        <div id="poStatus3way" style="margin-top: 10px; text-align: center;"></div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 10px;">🧾 Invoice</h3>
+                        <div class="upload-area" id="uploadInvoice3way">
+                            <div class="upload-icon">🧾</div>
+                            <h4>Drop Invoice PDF</h4>
+                            <input type="file" id="fileInputInvoice3way" accept=".pdf" style="display: none;">
+                            <button class="btn" onclick="document.getElementById('fileInputInvoice3way').click()">
+                                Choose Invoice
+                            </button>
+                        </div>
+                        <div id="invoiceStatus3way" style="margin-top: 10px; text-align: center;"></div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 10px;">📦 Goods Receipt</h3>
+                        <div class="upload-area" id="uploadGR">
+                            <div class="upload-icon">📦</div>
+                            <h4>Drop GR PDF</h4>
+                            <input type="file" id="fileInputGR" accept=".pdf" style="display: none;">
+                            <button class="btn" onclick="document.getElementById('fileInputGR').click()">
+                                Choose GR
+                            </button>
+                        </div>
+                        <div id="grStatus" style="margin-top: 10px; text-align: center;"></div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="verify3Way()" id="btnVerify3way" disabled>
+                        Verify Verify Documents
+                    </button>
+                </div>
+            </div>
+            
+            <div id="results" class="results hidden">
+                <h2>Results Verification Results</h2>
+                <div id="resultsContent"></div>
+            </div>
+            
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p id="loadingText">Processing documents...</p>
+            </div>
+            
+            <div id="verificationLoading" class="loading hidden">
+                <div class="spinner"></div>
+                <p id="verificationLoadingText">Verifying documents...</p>
+                <div id="processingSteps" style="margin-top: 30px; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    <div class="processing-step" id="step1">
+                        <span class="step-icon"></span> <span class="step-text">PDF Upload</span>
+                    </div>
+                    <div class="processing-step" id="step2">
+                        <span class="step-icon"></span> <span class="step-text">Text Extraction (PyPDF2 - pdfjs-dist equivalent)</span>
+                    </div>
+                    <div class="processing-step" id="step3">
+                        <span class="step-icon"></span> <span class="step-text">Structured Parsing (items, qty, price)</span>
+                    </div>
+                    <div class="processing-step" id="step4">
+                        <span class="step-icon"></span> <span class="step-text">Rule-Based Matching (fast checks)</span>
+                    </div>
+                    <div class="processing-step" id="step5">
+                        <span class="step-icon"></span> <span class="step-text">RAG Pipeline (context-aware validation)</span>
+                    </div>
+                    <div class="processing-step" id="step6">
+                        <span class="step-icon"></span> <span class="step-text">AI Explanation + Final Verdict</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        // Store uploaded documents
+        let uploadedDocs = {
+            po: null,
+            invoice: null,
+            gr: null
+        };
+        
+        // Select verification type
+        function selectVerificationType(type) {
+            document.getElementById('section2way').classList.add('hidden');
+            document.getElementById('section3way').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            
+            // Reset uploaded docs
+            uploadedDocs = { po: null, invoice: null, gr: null };
+            
+            if (type === '2way') {
+                document.getElementById('section2way').classList.remove('hidden');
+                document.getElementById('btn2way').style.background = 'linear-gradient(135deg, #27ae60 0%, #229954 100%)';
+                document.getElementById('btn3way').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            } else {
+                document.getElementById('section3way').classList.remove('hidden');
+                document.getElementById('btn3way').style.background = 'linear-gradient(135deg, #27ae60 0%, #229954 100%)';
+                document.getElementById('btn2way').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        }
+        
+        // Setup file inputs for 2-way
+        document.getElementById('fileInputPO').addEventListener('change', (e) => {
+            handleFileUpload(e.target.files[0], 'po', 'poStatus', 'btnVerify2way');
+        });
+        
+        document.getElementById('fileInputInvoice').addEventListener('change', (e) => {
+            handleFileUpload(e.target.files[0], 'invoice', 'invoiceStatus', 'btnVerify2way');
+        });
+        
+        // Setup file inputs for 3-way
+        document.getElementById('fileInputPO3way').addEventListener('change', (e) => {
+            handleFileUpload(e.target.files[0], 'po', 'poStatus3way', 'btnVerify3way');
+        });
+        
+        document.getElementById('fileInputInvoice3way').addEventListener('change', (e) => {
+            handleFileUpload(e.target.files[0], 'invoice', 'invoiceStatus3way', 'btnVerify3way');
+        });
+        
+        document.getElementById('fileInputGR').addEventListener('change', (e) => {
+            handleFileUpload(e.target.files[0], 'gr', 'grStatus', 'btnVerify3way');
+        });
+        
+        // Drag and drop for 2-way
+        setupDragDrop('uploadPO', 'fileInputPO', 'po', 'poStatus', 'btnVerify2way');
+        setupDragDrop('uploadInvoice', 'fileInputInvoice', 'invoice', 'invoiceStatus', 'btnVerify2way');
+        
+        // Drag and drop for 3-way
+        setupDragDrop('uploadPO3way', 'fileInputPO3way', 'po', 'poStatus3way', 'btnVerify3way');
+        setupDragDrop('uploadInvoice3way', 'fileInputInvoice3way', 'invoice', 'invoiceStatus3way', 'btnVerify3way');
+        setupDragDrop('uploadGR', 'fileInputGR', 'gr', 'grStatus', 'btnVerify3way');
+        
+        function setupDragDrop(areaId, inputId, docType, statusId, btnId) {
+            const area = document.getElementById(areaId);
+            
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+            
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+            
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type === 'application/pdf') {
+                    handleFileUpload(file, docType, statusId, btnId);
+                } else {
+                    alert('Please upload a PDF file');
+                }
+            });
+        }
+        
+        async function handleFileUpload(file, docType, statusId, btnId) {
+            if (!file) return;
+            
+            const statusDiv = document.getElementById(statusId);
+            statusDiv.innerHTML = '<span style="color: #f39c12;"> Uploading...</span>';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch(`${API_BASE}/upload/`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    uploadedDocs[docType] = result;
+                    statusDiv.innerHTML = `<span style="color: #27ae60;"> ${file.name} uploaded</span>`;
+                    checkVerifyButton(btnId);
+                } else {
+                    statusDiv.innerHTML = `<span style="color: #e74c3c;"> Upload failed</span>`;
+                    alert(`Upload failed: ${result.detail}`);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<span style="color: #e74c3c;"> Upload error</span>`;
+                alert(`Upload error: ${error.message}`);
+            }
+        }
+        
+        function checkVerifyButton(btnId) {
+            const btn = document.getElementById(btnId);
+            
+            if (btnId === 'btnVerify2way') {
+                // Enable if both PO and Invoice are uploaded
+                if (uploadedDocs.po && uploadedDocs.invoice) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            } else if (btnId === 'btnVerify3way') {
+                // Enable if PO, Invoice, and GR are uploaded
+                if (uploadedDocs.po && uploadedDocs.invoice && uploadedDocs.gr) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            }
+        }
+        
+        async function verify2Way() {
+            if (!uploadedDocs.po || !uploadedDocs.invoice) {
+                alert('Please upload both Purchase Order and Invoice');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                // Step 1: PDF Upload (already done)
+                updateStep(1, 'completed', '');
+                await sleep(300);
+                
+                // Step 2: Text Extraction
+                updateStep(2, 'active', '');
+                await sleep(500);
+                updateStep(2, 'completed', '');
+                
+                // Step 3: Structured Parsing
+                updateStep(3, 'active', '');
+                await sleep(500);
+                updateStep(3, 'completed', '');
+                
+                // Step 4: Rule-Based Matching
+                updateStep(4, 'active', '');
+                
+                const response = await fetch(`${API_BASE}/verify/2way`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        po_items: uploadedDocs.po.extracted_items.map(item => ({
+                            item: item.name,
+                            qty: item.quantity,
+                            price: item.unit_price
+                        })),
+                        invoice_items: uploadedDocs.invoice.extracted_items.map(item => ({
+                            item: item.name,
+                            qty: item.quantity,
+                            price: item.unit_price
+                        }))
+                    })
+                });
+                
+                updateStep(4, 'completed', '');
+                
+                // Step 5: RAG Pipeline
+                updateStep(5, 'active', '');
+                await sleep(800);
+                updateStep(5, 'completed', '');
+                
+                // Step 6: AI Explanation
+                updateStep(6, 'active', '');
+                await sleep(600);
+                
+                const result = await response.json();
+                
+                updateStep(6, 'completed', '');
+                await sleep(300);
+                
+                hideLoading();
+                
+                if (response.ok) {
+                    displayVerificationResults(result, '2-Way');
+                } else {
+                    alert(`Verification failed: ${result.detail}`);
+                }
+            } catch (error) {
+                updateStep(4, 'error', '');
+                updateStep(5, 'error', '');
+                updateStep(6, 'error', '');
+                hideLoading();
+                alert(`Verification error: ${error.message}`);
+            }
+        }
+        
+        async function verify3Way() {
+            if (!uploadedDocs.po || !uploadedDocs.invoice || !uploadedDocs.gr) {
+                alert('Please upload Purchase Order, Invoice, and Goods Receipt');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                // Step 1: PDF Upload (already done)
+                updateStep(1, 'completed', '');
+                await sleep(300);
+                
+                // Step 2: Text Extraction
+                updateStep(2, 'active', '');
+                await sleep(500);
+                updateStep(2, 'completed', '');
+                
+                // Step 3: Structured Parsing
+                updateStep(3, 'active', '');
+                await sleep(500);
+                updateStep(3, 'completed', '');
+                
+                // Step 4: Rule-Based Matching
+                updateStep(4, 'active', '');
+                
+                const response = await fetch(`${API_BASE}/verify/3way`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        po_items: uploadedDocs.po.extracted_items.map(item => ({
+                            item: item.name,
+                            qty: item.quantity,
+                            price: item.unit_price
+                        })),
+                        invoice_items: uploadedDocs.invoice.extracted_items.map(item => ({
+                            item: item.name,
+                            qty: item.quantity,
+                            price: item.unit_price
+                        })),
+                        gr_items: uploadedDocs.gr.extracted_items.map(item => ({
+                            item: item.name,
+                            qty: item.quantity,
+                            price: item.unit_price
+                        }))
+                    })
+                });
+                
+                updateStep(4, 'completed', '');
+                
+                // Step 5: RAG Pipeline
+                updateStep(5, 'active', '');
+                await sleep(800);
+                updateStep(5, 'completed', '');
+                
+                // Step 6: AI Explanation
+                updateStep(6, 'active', '');
+                await sleep(600);
+                
+                const result = await response.json();
+                
+                updateStep(6, 'completed', '');
+                await sleep(300);
+                
+                hideLoading();
+                
+                if (response.ok) {
+                    displayVerificationResults(result, '3-Way (PO vs Invoice vs GR)');
+                } else {
+                    alert(`Verification failed: ${result.detail}`);
+                }
+            } catch (error) {
+                updateStep(4, 'error', '');
+                updateStep(5, 'error', '');
+                updateStep(6, 'error', '');
+                hideLoading();
+                alert(`Verification error: ${error.message}`);
+            }
+        }
+        
+        function updateStep(stepNumber, status, icon) {
+            const step = document.getElementById(`step${stepNumber}`);
+            const stepIcon = step.querySelector('.step-icon');
+            
+            // Remove all status classes
+            step.classList.remove('active', 'completed', 'error');
+            
+            // Add new status
+            if (status) {
+                step.classList.add(status);
+            }
+            
+            // Update icon
+            if (icon) {
+                stepIcon.textContent = icon;
+            }
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function displayVerificationResults(result, verificationType) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultsContent');
+            
+            const summary = result.summary;
+            let statusClass = 'status-approved';
+            let statusIcon = '';
+            
+            if (summary.items_rejected > 0) {
+                statusClass = 'status-rejected';
+                statusIcon = '';
+            } else if (summary.items_need_review > 0) {
+                statusClass = 'status-review';
+                statusIcon = '';
+            }
+            
+            let html = `
+                <h3 style="margin-bottom: 15px;">${verificationType} Matching Results</h3>
+                <div class="status-card ${statusClass}">
+                    <h3>${statusIcon} ${summary.overall_recommendation}</h3>
+                    <div style="margin-top: 15px;">
+            `;
+            
+            // Only show total if there are discrepancies
+            if (summary.total_items_checked > 0) {
+                html += `<span style="margin-right: 20px;">Results Total Discrepancies: ${summary.total_items_checked}</span>`;
+            }
+            
+            // Show approved/rejected count
+            html += `
+                        <span style="margin-right: 20px;"> Approved: ${summary.items_approved}</span>
+                        <span> Rejected: ${summary.items_rejected}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Only show item details if there are discrepancies
+            if (result.item_details && result.item_details.length > 0) {
+                html += '<h3>📋 Discrepancy Details</h3>';
+                
+                result.item_details.forEach(item => {
+                    let badgeClass = 'badge-approved';
+                    let statusIcon = '';
+                    
+                    if (item.status === 'REJECTED') {
+                        badgeClass = 'badge-rejected';
+                        statusIcon = '';
+                    } else if (item.status === 'NEEDS_REVIEW') {
+                        badgeClass = 'badge-review';
+                        statusIcon = '';
+                    }
+                    
+                    html += `
+                        <div class="item-detail">
+                            <div class="item-header">
+                                <span class="item-name">${statusIcon} ${item.item_name}</span>
+                                <span class="status-badge ${badgeClass}">${item.status}</span>
+                            </div>
+                            <p><strong>Issue:</strong> ${item.issue_description}</p>
+                            <p><strong>Recommendation:</strong> ${item.recommendation}</p>
+                            ${item.supporting_documents.length > 0 ? 
+                                `<p><strong>Policy References:</strong> ${item.supporting_documents.join(', ')}</p>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            html += '<h3>📝 Processing Notes</h3><ul>';
+            result.processing_notes.forEach(note => {
+                html += `<li>${note}</li>`;
+            });
+            html += '</ul>';
+            
+            contentDiv.innerHTML = html;
+            resultsDiv.classList.remove('hidden');
+        }
+        
+        async function checkSystemHealth() {
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const result = await response.json();
+                hideLoading();
+                
+                if (response.ok) {
+                    alert(`System Status: ${result.service_status.toUpperCase()}\n\nDocuments Loaded: ${result.knowledge_base.documents_loaded}\n\nCapabilities:\n• ${result.capabilities.join('\n• ')}`);
+                } else {
+                    alert('Health check failed');
+                }
+            } catch (error) {
+                hideLoading();
+                alert(`Health check error: ${error.message}\n\nMake sure the backend server is running on http://localhost:8000`);
+            }
+        }
+        
+        function showLoading() {
+            // Reset all steps
+            for (let i = 1; i <= 6; i++) {
+                updateStep(i, '', '');
+            }
+            
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
